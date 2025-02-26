@@ -5,8 +5,11 @@ gem "rails", "~> 8.0.0"
 gem "pg", "~> 1.1"
 gem "puma", ">= 5.0"
 
-# GraphQL and API components
+# Asset Pipeline and GraphQL components
+gem "sprockets", "~> 4.0"
+gem "sprockets-rails"
 gem "graphql"
+gem "graphiql-rails"
 gem "rack-cors"
 gem "httparty"
 
@@ -19,9 +22,8 @@ group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
   gem "brakeman", require: false
   gem "rubocop-rails-omakase", require: false
-  gem "graphiql-rails"
   gem "pry-rails"
 end
 
-# Windows compatibility - keeping this from the original
+# Windows compatibility
 gem "tzinfo-data", platforms: %i[ windows jruby ]
