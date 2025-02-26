@@ -25,5 +25,9 @@ module Types
       description: "Delete a tournament"
     field :delete_match, mutation: Mutations::DeleteMatch,
       description: "Delete a match"
+
+    # API integration mutations
+    field :import_api_data, mutation: Mutations::ImportApiData,
+      description: "Import data from API-FOOTBALL"
   end
 end

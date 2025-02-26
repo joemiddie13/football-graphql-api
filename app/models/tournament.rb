@@ -5,7 +5,8 @@ class Tournament < ApplicationRecord
   validates :season, presence: true
 
   def teams
-    team_ids = matches.pluck(:home_team_id, :away_team_id).flatten.uniq
-    Team.where(id: team_ids)
+    Team.joins("LEFT JOIN matches ON teams.id = matches.home_team_id OR teams.id = matches.away_team_id")
+        .where(matches: { tournament_id: id })
+        .distinct
   end
 end
