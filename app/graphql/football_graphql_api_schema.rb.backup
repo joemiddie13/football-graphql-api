@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
 class FootballGraphqlApiSchema < GraphQL::Schema
-  # These lines are okay to keep
-  mutation(Types::MutationType)
-  query(Types::QueryType)
+  # REMOVE these lines:
+  # mutation(Types::MutationType)
+  # query(Types::QueryType)
 
-  # For batch-loading
+  # For batch-loading (see https://graphql-ruby.org/dataloader/overview.html)
   use GraphQL::Dataloader
 
-  # The correct way to enable connections - replace your line with this one
-  connections
+  # Add this line to enable connections and pagination
+  use GraphQL::Pagination::Connections
 
   # GraphQL-Ruby calls this when something goes wrong while running a query:
   def self.type_error(err, context)
@@ -20,7 +20,6 @@ class FootballGraphqlApiSchema < GraphQL::Schema
     super
   end
 
-  # Rest of your schema...
   # Union and Interface Resolution
   def self.resolve_type(abstract_type, obj, ctx)
     # TODO: Implement this method
@@ -35,6 +34,7 @@ class FootballGraphqlApiSchema < GraphQL::Schema
   validate_max_errors(100)
 
   # Relay-style Object Identification:
+
   # Return a string UUID for `object`
   def self.id_from_object(object, type_definition, query_ctx)
     # For example, use Rails' GlobalID library (https://github.com/rails/globalid):
