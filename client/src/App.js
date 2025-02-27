@@ -4,7 +4,6 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { CssBaseline, Container } from '@mui/material';
 import client from './apolloClient';
 
-// Import placeholder components (we'll create these next)
 import Home from './pages/Home';
 import TournamentStandings from './pages/TournamentStandings';
 import TeamDetails from './pages/TeamDetails';
