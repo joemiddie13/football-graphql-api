@@ -5,12 +5,14 @@ import {
   Typography, Box, CircularProgress, Alert, Paper, Table, 
   TableBody, TableCell, TableContainer, TableHead, TableRow,
   Chip, useMediaQuery, useTheme, Card, CardContent,
-  Divider, Avatar, IconButton, Tooltip
+  Divider, Avatar, IconButton, Tooltip, Skeleton
 } from '@mui/material';
 import { 
   Info as InfoIcon,
   ArrowUpward as ArrowUpwardIcon,
-  ArrowDownward as ArrowDownwardIcon
+  ArrowDownward as ArrowDownwardIcon,
+  SportsSoccer as SoccerIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 
 // GraphQL query for tournament standings
@@ -47,23 +49,110 @@ function TournamentStandings() {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   
-  const { loading, error, data } = useQuery(TOURNAMENT_STANDINGS_QUERY, {
+  const { loading, error, data, refetch } = useQuery(TOURNAMENT_STANDINGS_QUERY, {
     variables: { tournamentId },
+    fetchPolicy: 'cache-and-network', // Use cache but refetch in background
   });
 
-  if (loading) return (
-    <Box display="flex" justifyContent="center" mt={4}>
-      <CircularProgress />
+  // Function to get team initials for avatar fallback
+  const getTeamInitials = (teamName) => {
+    if (!teamName) return '?';
+    
+    // Extract initials from name
+    const words = teamName.split(' ');
+    if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
+    
+    // For multi-word team names, get first letter of first and last words
+    const firstInitial = words[0][0];
+    const lastInitial = words[words.length - 1][0];
+    return (firstInitial + lastInitial).toUpperCase();
+  };
+
+  // Function to get background color for team avatar fallback
+  const getAvatarBgColor = (teamName) => {
+    if (!teamName) return theme.palette.grey[400];
+    
+    // Generate a pseudo-random but consistent color based on team name
+    const hash = teamName.split('').reduce((acc, char) => {
+      return char.charCodeAt(0) + ((acc << 5) - acc);
+    }, 0);
+    
+    // Use the hash to create a hue (0-360) and generate an HSL color
+    const hue = Math.abs(hash) % 360;
+    return `hsl(${hue}, 65%, 40%)`;
+  };
+
+  // Loading state with skeleton UI
+  if (loading && !data) return (
+    <Box>
+      <Skeleton variant="text" width="60%" height={40} sx={{ mb: 1 }} />
+      <Skeleton variant="text" width="40%" height={30} sx={{ mb: 4 }} />
+      
+      <Skeleton variant="text" width="200px" height={35} sx={{ mb: 2 }} />
+      
+      <TableContainer component={Paper} elevation={2}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              {Array(isMobile ? 4 : isTablet ? 7 : 10).fill(0).map((_, i) => (
+                <TableCell key={i}>
+                  <Skeleton variant="text" />
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {Array(8).fill(0).map((_, i) => (
+              <TableRow key={i}>
+                {Array(isMobile ? 4 : isTablet ? 7 : 10).fill(0).map((_, j) => (
+                  <TableCell key={j}>
+                    <Skeleton variant="text" />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Box>
   );
   
-  if (error) return (
-    <Alert severity="error" sx={{ mt: 2 }}>
-      Error: {error.message}
+  // Error state
+  if (error && !data) return (
+    <Alert 
+      severity="error" 
+      sx={{ mt: 2 }}
+      action={
+        <IconButton
+          color="inherit"
+          size="small"
+          onClick={() => refetch()}
+        >
+          <RefreshIcon />
+        </IconButton>
+      }
+    >
+      <Typography variant="subtitle1">Error loading data</Typography>
+      <Typography variant="body2">{error.message}</Typography>
+      <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+        Click the refresh button to try again.
+      </Typography>
     </Alert>
   );
 
-  // Function to determine team status for visual indicators (like UEFA site)
+  // Empty data handling
+  if (data && (!data.teamRankings || data.teamRankings.length === 0)) {
+    return (
+      <Alert severity="info" sx={{ mt: 2 }}>
+        <Typography variant="subtitle1">No team rankings available</Typography>
+        <Typography variant="body2">
+          This tournament may not have started yet, or there might be an issue with the data.
+        </Typography>
+      </Alert>
+    );
+  }
+
+  // Function to determine team status for visual indicators
   const getTeamStatus = (position) => {
     if (position <= 8) {
       return { color: 'success', label: 'Knockout stage' };
@@ -79,7 +168,7 @@ function TournamentStandings() {
   // Function to render form guide (last 5 matches)
   const renderFormGuide = (position) => {
     // This would be based on actual match data
-    // For now, let's create a mock form based on team position
+    // Mock form based on team position for demonstration
     const mockForms = {
       1: ['W', 'W', 'W', 'W', 'D'],
       2: ['W', 'W', 'W', 'D', 'W'],
@@ -91,7 +180,7 @@ function TournamentStandings() {
       8: ['L', 'W', 'W', 'W', 'W']
     };
     
-    // If we don't have mock data for this position, generate random form
+    // Use mock data or generate random form
     const forms = mockForms[position] || Array(5).fill().map(() => {
       const rand = Math.random();
       if (rand > 0.6) return 'W';
@@ -127,6 +216,53 @@ function TournamentStandings() {
     );
   };
 
+  const renderTeamLogo = (team) => {
+    // For debugging - log the logo URL to see what's coming from the API
+    console.log(`Team: ${team.name}, Logo URL: ${team.logoUrl}`);
+    
+    // Check if logo URL exists and doesn't contain invalid patterns
+    const hasValidLogo = team.logoUrl && 
+                        !team.logoUrl.includes('example.com') && 
+                        !team.logoUrl.includes('placeholder') &&
+                        team.logoUrl.startsWith('http');
+    
+    if (hasValidLogo) {
+      return (
+        <Avatar 
+          src={team.logoUrl}
+          alt={team.name}
+          sx={{ height: 28, width: 28, mr: 1 }}
+          imgProps={{
+            onError: (e) => {
+              // Log the error when an image fails to load
+              console.error(`Failed to load logo for ${team.name}: ${team.logoUrl}`);
+              // If image fails to load, replace src with empty string to show fallback
+              e.target.onerror = null;
+              e.target.src = "";
+            }
+          }}
+        >
+          {getTeamInitials(team.name)}
+        </Avatar>
+      );
+    }
+    
+    // Fallback to text avatar with team initials
+    return (
+      <Avatar 
+        sx={{ 
+          height: 28, 
+          width: 28, 
+          mr: 1, 
+          fontSize: '0.8rem',
+          bgcolor: getAvatarBgColor(team.name)
+        }}
+      >
+        {getTeamInitials(team.name)}
+      </Avatar>
+    );
+  };
+
   // Function to render the table for desktop/tablet
   const renderTable = () => (
     <TableContainer component={Paper} elevation={2}>
@@ -154,7 +290,7 @@ function TournamentStandings() {
         </TableHead>
         <TableBody>
           {data.teamRankings.map((ranking, index) => {
-            // Using the index + 1 as the position instead of adding property to team
+            // Use index + 1 as position
             const position = index + 1;
             const status = getTeamStatus(position);
             
@@ -164,7 +300,7 @@ function TournamentStandings() {
                 sx={{
                   '&:hover': { backgroundColor: 'action.hover' },
                   backgroundColor: index % 2 === 0 ? 'action.hover' : 'inherit',
-                  // Add a left border with color based on qualification status
+                  // Add left border with color based on qualification status
                   borderLeft: `4px solid ${theme.palette[status.color].main}`
                 }}
               >
@@ -198,25 +334,7 @@ function TournamentStandings() {
                       color: 'inherit'
                     }}
                   >
-                    {ranking.team.logoUrl ? (
-                      <Avatar 
-                        src={ranking.team.logoUrl}
-                        alt={ranking.team.name}
-                        sx={{ height: 28, width: 28, mr: 1 }}
-                      />
-                    ) : (
-                      <Avatar 
-                        sx={{ 
-                          height: 28, 
-                          width: 28, 
-                          mr: 1, 
-                          fontSize: '0.8rem',
-                          bgcolor: theme.palette.grey[300] 
-                        }}
-                      >
-                        {ranking.team.name.charAt(0)}
-                      </Avatar>
-                    )}
+                    {renderTeamLogo(ranking.team)}
                     <Box>
                       <Typography variant="body2" component="span" fontWeight="medium">
                         {ranking.team.name}
@@ -290,19 +408,7 @@ function TournamentStandings() {
                   </Typography>
                   
                   <Box display="flex" alignItems="center">
-                    {ranking.team.logoUrl ? (
-                      <Avatar 
-                        src={ranking.team.logoUrl}
-                        alt={ranking.team.name}
-                        sx={{ height: 32, width: 32, mr: 1 }}
-                      />
-                    ) : (
-                      <Avatar 
-                        sx={{ height: 32, width: 32, mr: 1, bgcolor: theme.palette.grey[300] }}
-                      >
-                        {ranking.team.name.charAt(0)}
-                      </Avatar>
-                    )}
+                    {renderTeamLogo({...ranking.team, height: 32, width: 32})}
                     <Box>
                       <Typography variant="body1" fontWeight="medium">
                         {ranking.team.name}
@@ -384,16 +490,29 @@ function TournamentStandings() {
         <Typography variant="h5">
           Standings
         </Typography>
-        <Tooltip title="The standings are updated after each match">
-          <IconButton size="small">
-            <InfoIcon fontSize="small" />
+        <Tooltip title="Refresh standings data">
+          <IconButton size="small" onClick={() => refetch()}>
+            <RefreshIcon fontSize="small" />
           </IconButton>
         </Tooltip>
       </Box>
 
+      {/* Show loading indicator if refreshing but display existing data */}
+      {loading && data && (
+        <Box display="flex" justifyContent="center" my={2}>
+          <CircularProgress size={24} />
+        </Box>
+      )}
+
       {isMobile ? renderMobileCards() : renderTable()}
       
       {renderLegend()}
+      
+      <Box display="flex" justifyContent="flex-end" mt={2}>
+        <Typography variant="caption" color="text.secondary">
+          Data from 2023-2024 UEFA Champions League
+        </Typography>
+      </Box>
     </Box>
   );
 }
