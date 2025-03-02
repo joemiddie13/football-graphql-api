@@ -10,7 +10,8 @@ namespace :football do
 
     Team.find_each do |team|
       puts "Importing players for #{team.name}..."
-      # Make sure to pass the team.id here:
+
+      # Make sure we're passing both the team.id and season explicitly
       result = importer.import_players(team.id, season)
 
       if result[:success]
@@ -49,6 +50,7 @@ namespace :football do
 
     puts "🧍 Importing players for #{team.name} for season #{season}..."
     importer = ApiFootball::DataImporter.new
+
     # Make sure to pass BOTH team.id and season here:
     result = importer.import_players(team.id, season)
 

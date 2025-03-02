@@ -5,10 +5,11 @@ class Player < ApplicationRecord
   validates :position, presence: true
   validates :team_id, presence: true
 
-  enum position: {
+  enum :position, {
     goalkeeper: 'Goalkeeper',
     defender: 'Defender',
     midfielder: 'Midfielder',
-    forward: 'Forward'
+    forward: 'Forward',
+    unknown: 'Unknown'
   }
 end
