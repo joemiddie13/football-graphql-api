@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_26_002215) do
+ActiveRecord::Schema[8.0].define(version: 2025_03_01_233620) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -26,6 +26,22 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_26_002215) do
     t.index ["away_team_id"], name: "index_matches_on_away_team_id"
     t.index ["home_team_id"], name: "index_matches_on_home_team_id"
     t.index ["tournament_id"], name: "index_matches_on_tournament_id"
+  end
+
+  create_table "players", force: :cascade do |t|
+    t.bigint "team_id", null: false
+    t.string "name", null: false
+    t.string "position", null: false
+    t.string "nationality"
+    t.integer "age"
+    t.integer "jersey_number"
+    t.integer "goals", default: 0
+    t.integer "assists", default: 0
+    t.integer "appearances", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["team_id", "name"], name: "index_players_on_team_id_and_name", unique: true
+    t.index ["team_id"], name: "index_players_on_team_id"
   end
 
   create_table "teams", force: :cascade do |t|
@@ -47,4 +63,5 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_26_002215) do
   add_foreign_key "matches", "teams", column: "away_team_id"
   add_foreign_key "matches", "teams", column: "home_team_id"
   add_foreign_key "matches", "tournaments"
+  add_foreign_key "players", "teams"
 end

@@ -85,7 +85,26 @@ module Types
         description: "ID of the tournament to get rankings for"
     end
 
+    # Player Queries
+    field :player, PlayerType, null: true do
+      description "Find a specific player by ID"
+      argument :id, ID, required: true
+    end
+
+    field :players, [PlayerType], null: false do
+      description "Fetch players, optionally filtered by team"
+      argument :team_id, ID, required: false
+    end
+
     # Resolver Methods
+    def player(id:)
+      Player.find_by(id: id)
+    end
+
+    def players(team_id: nil)
+      team_id ? Player.where(team_id: team_id) : Player.all
+    end
+
     def tournament(id:)
       Tournament.find_by(id: id)
     end

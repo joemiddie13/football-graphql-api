@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery, gql } from '@apollo/client';
-import { useParams } from 'react-router-dom';
+import { useParams, Link as RouterLink } from 'react-router-dom';
 import { 
   Typography, Box, CircularProgress, Alert, Paper, Divider,
   Card, CardContent, Grid, Chip, Avatar, 
@@ -231,7 +231,16 @@ function TeamDetails() {
                     {new Date(match.matchDate).toLocaleDateString()}
                   </TableCell>
                   <TableCell>
-                    <Box display="flex" alignItems="center">
+                    <Box 
+                      component={RouterLink} 
+                      to={`/teams/${match.homeTeam.id}`}
+                      sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        textDecoration: 'none',
+                        color: 'inherit'
+                      }}
+                    >
                       {match.homeTeam.logoUrl && (
                         <Avatar 
                           src={match.homeTeam.logoUrl} 
@@ -259,7 +268,16 @@ function TeamDetails() {
                     )}
                   </TableCell>
                   <TableCell>
-                    <Box display="flex" alignItems="center">
+                    <Box 
+                      component={RouterLink} 
+                      to={`/teams/${match.awayTeam.id}`}
+                      sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        textDecoration: 'none',
+                        color: 'inherit'
+                      }}
+                    >
                       {match.awayTeam.logoUrl && (
                         <Avatar 
                           src={match.awayTeam.logoUrl} 

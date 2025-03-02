@@ -4,6 +4,56 @@ module ApiFootball
       @client = ApiFootball::Client.new
     end
 
+    def import_players(team_id, season = "2023")
+      team = Team.find(team_id)
+
+      # Call the API endpoint for players
+      response = @client.get_players(team_id, season)
+
+      if response[:success]
+        players_data = response[:data]["response"]
+        imported_count = 0
+
+        players_data.each do |player_data|
+          player_info = player_data["player"]
+          statistics = player_data["statistics"][0] # Usually first item contains current season stats
+
+          # Map position from API to our format
+          position = case player_info["position"]
+                     when "Goalkeeper" then "Goalkeeper"
+                     when "Defender" then "Defender"
+                     when "Midfielder" then "Midfielder"
+                     when "Attacker" then "Forward"
+                     else "Unknown"
+                     end
+
+          # Create or update player
+          player = Player.find_or_initialize_by(
+            team: team,
+            name: player_info["name"]
+          )
+
+          player.update!(
+            position: position,
+            nationality: player_info["nationality"],
+            age: player_info["age"],
+            jersey_number: player_info["number"] || 0,
+            goals: statistics&.dig("goals", "total") || 0,
+            assists: statistics&.dig("goals", "assists") || 0,
+            appearances: statistics&.dig("games", "appearences") || 0
+          )
+
+          imported_count += 1 if player.persisted?
+        end
+
+        { success: true, count: imported_count }
+      else
+        { success: false, error: response[:error] }
+      end
+    rescue StandardError => e
+      { success: false, error: e.message }
+    end
+
     def import_teams(league_id, season)
       response = @client.get_teams(league_id, season)
 

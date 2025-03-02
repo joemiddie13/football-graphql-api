@@ -14,6 +14,13 @@ module ApiFootball
       end
     end
 
+    def get_players(team_id, season = nil)
+      params = { team: team_id }
+      params[:season] = season if season
+
+      make_request("/players", params)
+    end
+
     def get_teams(league_id, season)
       make_request("/teams", { league: league_id, season: season })
     end
