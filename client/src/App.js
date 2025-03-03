@@ -16,6 +16,8 @@ import client from './apolloClient';
 import Home from './pages/Home';
 import TournamentStandings from './pages/TournamentStandings';
 import TeamDetails from './pages/TeamDetails';
+import TeamsPage from './pages/TeamsPage';
+import MatchesPage from './pages/MatchesPage';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
@@ -102,18 +104,8 @@ export default function App() {
                 <Route path="/tournaments/:id/standings" element={<TournamentStandings />} />
                 <Route path="/teams/:id" element={<TeamDetails />} />
                 <Route path="/tournaments" element={<Home />} />
-                <Route path="/teams" element={
-                  <Container maxWidth="lg" sx={{ pt: 4 }}>
-                    <Typography variant="h4" gutterBottom>Teams</Typography>
-                    <Alert severity="info">Teams listing page coming soon!</Alert>
-                  </Container>
-                } />
-                <Route path="/matches" element={
-                  <Container maxWidth="lg" sx={{ pt: 4 }}>
-                    <Typography variant="h4" gutterBottom>Matches</Typography>
-                    <Alert severity="info">Matches listing page coming soon!</Alert>
-                  </Container>
-                } />
+                <Route path="/teams" element={<TeamsPage />} />
+                <Route path="/matches" element={<MatchesPage />} /> {}
               </Routes>
             </Box>
             <Footer />
