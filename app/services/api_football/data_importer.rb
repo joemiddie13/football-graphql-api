@@ -15,33 +15,77 @@ module ApiFootball
         team = Team.find(team_id)
         puts "Found team: #{team.name} (ID: #{team_id})"
 
+        # Extract API team ID from logo URL if available
+        api_team_id = team_id
+        if team.logo_url.present? && team.logo_url.match(/teams\/(\d+)/)
+          api_team_id = team.logo_url.match(/teams\/(\d+)/)[1]
+          puts "Using API team ID #{api_team_id} extracted from logo URL"
+        else
+          puts "Warning: Using database ID as API ID (may not match API's team identifier)"
+        end
+
         # Debug API call parameters
-        puts "Calling API with team_id: #{team_id} and season: #{season}"
+        puts "Calling API with team_id: #{api_team_id} and season: #{season}"
 
-        # Call the API endpoint for players
-        response = @client.get_players(team_id, season)
-        puts "API response received: success=#{response[:success]}"
+        # Initialize counters for summary
+        imported_count = 0
+        total_players_in_api = 0
+        page = 1
+        all_players_data = []
 
-        if response[:success]
+        # Handle pagination
+        loop do
+          # Call the API endpoint for players with pagination
+          response = @client.make_request("/players", { team: api_team_id, season: season, page: page })
+          puts "API response for page #{page}: success=#{response[:success]}"
+
+          break unless response[:success]
+
           players_data = response[:data]["response"]
-          imported_count = 0
-          puts "Processing #{players_data.length} players from API"
+          total_players_in_api += players_data.length
+          puts "Processing #{players_data.length} players from API (page #{page})"
 
-          players_data.each do |player_data|
+          # Store all players data
+          all_players_data.concat(players_data)
+
+          # Check if we've reached the last page
+          paging = response[:data]["paging"]
+          if paging && paging["current"] < paging["total"]
+            page += 1
+          else
+            break
+          end
+        end
+
+        puts "Total players found in API: #{total_players_in_api}"
+
+        # Process all collected player data
+        all_players_data.each do |player_data|
+          begin
             player_info = player_data["player"]
-            statistics = player_data["statistics"][0] # Usually first item contains current season stats
+            puts "Processing player: #{player_info['name'] || 'Unknown name'}, ID: #{player_info['id'] || 'Unknown ID'}"
 
-            # Map position from API to our format
-            position = case player_info["position"]
-                       when "Goalkeeper" then "Goalkeeper"
-                       when "Defender" then "Defender"
-                       when "Midfielder" then "Midfielder"
-                       when "Attacker" then "Forward"
-                       else "Unknown"
-                       end
-            puts "Player: #{player_info["name"]}, Position from API: #{player_info["position"]}, Mapped to: #{position}"
+            # Log all available fields for debugging
+            puts "Player info fields available: #{player_info.keys.join(', ')}"
+            puts "Nationality from API: #{player_info['nationality'] || 'NOT PROVIDED'}"
 
-            # Create or update player
+            statistics = player_data["statistics"].first if player_data["statistics"].is_a?(Array) && !player_data["statistics"].empty?
+
+            # Map position from API to our format (with better error handling)
+            position = "Unknown"
+            if player_info["position"]
+              position = case player_info["position"]
+                         when "Goalkeeper" then "Goalkeeper"
+                         when "Defender" then "Defender"
+                         when "Midfielder" then "Midfielder"
+                         when "Attacker" then "Forward"
+                         else "Unknown"
+                         end
+            end
+
+            puts "Player: #{player_info['name']}, Position from API: #{player_info['position'] || 'NOT PROVIDED'}, Mapped to: #{position}"
+
+            # Create or update player with safer data extraction
             player = Player.find_or_initialize_by(
               team: team,
               name: player_info["name"]
@@ -51,20 +95,19 @@ module ApiFootball
               position: position,
               nationality: player_info["nationality"],
               age: player_info["age"],
-              jersey_number: player_info["number"] || 0,
+              jersey_number: player_info.dig("number") || 0,
               goals: statistics&.dig("goals", "total") || 0,
               assists: statistics&.dig("goals", "assists") || 0,
               appearances: statistics&.dig("games", "appearences") || 0
             )
 
             imported_count += 1 if player.persisted?
+          rescue => e
+            puts "Error processing player: #{e.message}"
           end
-
-          { success: true, count: imported_count }
-        else
-          puts "API returned error: #{response[:error]}"
-          { success: false, error: response[:error] }
         end
+
+        { success: true, count: imported_count }
       rescue StandardError => e
         puts "Exception occurred: #{e.message}"
         puts e.backtrace.join("\n")
