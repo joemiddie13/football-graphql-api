@@ -1,14 +1,11 @@
 # frozen_string_literal: true
 
 class FootballGraphqlApiSchema < GraphQL::Schema
-  # These lines are okay to keep
   mutation(Types::MutationType)
   query(Types::QueryType)
 
-  # For batch-loading
   use GraphQL::Dataloader
 
-  # The correct way to enable connections - replace your line with this one
   connections
 
   # GraphQL-Ruby calls this when something goes wrong while running a query:
@@ -20,11 +17,8 @@ class FootballGraphqlApiSchema < GraphQL::Schema
     super
   end
 
-  # Rest of your schema...
   # Union and Interface Resolution
   def self.resolve_type(abstract_type, obj, ctx)
-    # TODO: Implement this method
-    # to return the correct GraphQL object type for `obj`
     raise(GraphQL::RequiredImplementationMissingError)
   end
 

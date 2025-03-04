@@ -13,7 +13,6 @@ import {
   People as PeopleIcon
 } from '@mui/icons-material';
 
-// Import our new components
 import PlayersList from '../components/PlayersList';
 import MatchesList from '../components/MatchesList';
 

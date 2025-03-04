@@ -5,7 +5,6 @@ module ApiFootball
     end
 
     def import_players(team_id, season = "2023")
-      # Add validation for team_id
       if team_id.nil?
         puts "Error: team_id is nil"
         return { success: false, error: "Team ID cannot be nil" }
