@@ -2,7 +2,8 @@
 
 A full-stack application providing UEFA Champions League football data through a GraphQL API, built with Ruby on Rails, GraphQL, React, and Apollo Client.
 
-![Champions League Explorer](https://github.com/user-attachments/assets/f29c8ce4-14f9-4749-8253-036836ccc3be)
+<img width="1149" alt="image" src="https://github.com/user-attachments/assets/05c8be34-f0f7-4a41-bff7-955c8f54cbb2" />
+
 
 ## Project Overview
 
@@ -154,13 +155,16 @@ query {
 ## Screenshots
 
 ### Home Page
-![Home Page](https://github.com/user-attachments/assets/f29c8ce4-14f9-4749-8253-036836ccc3be)
+<img width="1149" alt="image" src="https://github.com/user-attachments/assets/a6e73dff-0c99-4a26-855e-dcb8b936797e" />
+
 
 ### Tournament Standings
-![Tournament Standings](https://github.com/user-attachments/assets/92904582-b0f4-4312-a3a2-4b9833822b70)
+<img width="1150" alt="image" src="https://github.com/user-attachments/assets/50bbca1d-9e87-4d4b-9746-33ac4160c5ca" />
+
 
 ### Team Details
-![Team Details](https://github.com/user-attachments/assets/06db5b93-9f65-4cd9-88f4-fc899a246e87)
+<img width="1150" alt="image" src="https://github.com/user-attachments/assets/758acc5a-d00b-480c-9e10-3a0aaf6df2dd" />
+
 
 ## Getting Started
 
