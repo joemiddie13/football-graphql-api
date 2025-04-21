@@ -176,7 +176,7 @@ GEM
     puma (6.6.0)
       nio4r (~> 2.0)
     racc (1.8.1)
-    rack (3.1.10)
+    rack (3.1.13)
     rack-cors (2.0.2)
       rack (>= 2.0.0)
     rack-session (2.1.0)
@@ -260,8 +260,9 @@ GEM
       rubocop-rails
     ruby-progressbar (1.13.0)
     securerandom (0.4.1)
-    sprockets (4.2.1)
+    sprockets (4.2.2)
       concurrent-ruby (~> 1.0)
+      logger
       rack (>= 2.2.4, < 4)
     sprockets-rails (3.5.2)
       actionpack (>= 6.1)
@@ -307,7 +308,7 @@ DEPENDENCIES
   rails (~> 8.0.0)
   redis
   rubocop-rails-omakase
-  sprockets (~> 4.0)
+  sprockets (~> 4.2)
   sprockets-rails
   tzinfo-data
 
